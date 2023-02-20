@@ -9,6 +9,12 @@ Feature: End to End Tests for the restful-booker API (https://restful-booker.her
     Then the updated first name and last name appears
 
 
+  Scenario: A user can create a new booking
+    When I create a booking
+    Then the request is successful
+    And a booking id is returned
+
+
 
 
 

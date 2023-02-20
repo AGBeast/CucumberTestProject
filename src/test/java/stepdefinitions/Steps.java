@@ -2,11 +2,15 @@ package stepdefinitions;
 
 import com.github.javafaker.Faker;
 import io.cucumber.java.bs.A.As;
+import io.cucumber.java.en.And;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
 import org.junit.Assert;
+
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -21,6 +25,9 @@ public class Steps {
   private static final String BASE_URL = "https://restful-booker.herokuapp.com";
   private static final String USER_NAME = "admin";
   private static final String PASSWORD  = "password123";
+
+  DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+  LocalDate today = LocalDate.now();
 
   private String newBookingFirstName;
   private String newBookingLastName;
@@ -94,10 +101,56 @@ public class Steps {
 
   }
 
+  @When("I create a booking")
+  public void i_create_a_booking() {
+    RestAssured.baseURI = BASE_URL;
+    RequestSpecification request = RestAssured.given()
+        .header("Content-Type", "application/json")
+        .header("Accept","application/json");
+
+    Faker faker = new Faker();
+    newBookingFirstName = faker.name().firstName();
+    newBookingLastName = faker.name().lastName();
+
+    JSONObject bookingDates = new JSONObject();
+    bookingDates.put("checkin", dtf.format(today));
+    bookingDates.put("checkout", dtf.format(today.plusDays(10)));
+
+    JSONObject createBookingObject = new JSONObject();
+    createBookingObject.put("firstname", newBookingFirstName);
+    createBookingObject.put("lastname", newBookingLastName);
+    createBookingObject.put("totalprice", 123);
+    createBookingObject.put("depositpaid", false);
+    createBookingObject.put("bookingdates",bookingDates);
+    createBookingObject.put("additionalneeds",faker.commerce().productName());
+
+    apiResponse = request.body(createBookingObject.toString()).post("/booking");
+
+
+  }
+
   @Then("the updated first name and last name appears")
   public void the_updated_first_name_and_last_name_appears() {
     Assert.assertTrue(newBookingFirstName.equals(apiResponse.jsonPath().getString("firstname")));
     Assert.assertTrue(newBookingLastName.equals(apiResponse.jsonPath().getString("lastname")));
+  }
+
+  @Then("the request is successful")
+  public void the_request_is_successful() {
+    RestAssured.baseURI = BASE_URL;
+    RequestSpecification request = RestAssured.given()
+        .header("Content-Type", "application/json")
+        .header("Accept","application/json");
+
+    Assert.assertEquals(200, apiResponse.statusCode());
+  }
+
+  @And("a booking id is returned")
+  public void a_booking_id_is_returned() {
+    bookingId = apiResponse.jsonPath().getInt("bookingid");
+
+    Assert.assertNotNull(bookingId);
+
   }
 
 
