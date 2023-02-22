@@ -137,11 +137,6 @@ public class Steps {
 
   @Then("the request is successful")
   public void the_request_is_successful() {
-    RestAssured.baseURI = BASE_URL;
-    RequestSpecification request = RestAssured.given()
-        .header("Content-Type", "application/json")
-        .header("Accept","application/json");
-
     Assert.assertEquals(200, apiResponse.statusCode());
   }
 
@@ -150,6 +145,34 @@ public class Steps {
     bookingId = apiResponse.jsonPath().getInt("bookingid");
 
     Assert.assertNotNull(bookingId);
+
+  }
+
+  @And("I update all of the booking details")
+  public void i_update_all_of_the_booking_details() {
+    RestAssured.baseURI = BASE_URL;
+    RequestSpecification request = RestAssured.given()
+        .header("Content-Type", "application/json")
+        .header("Accept","application/json")
+        .header("Cookie", "token="+authToken);
+
+    Faker faker = new Faker();
+    newBookingFirstName = faker.name().firstName();
+    newBookingLastName = faker.name().lastName();
+
+    JSONObject bookingDates = new JSONObject();
+    bookingDates.put("checkin", dtf.format(today));
+    bookingDates.put("checkout", dtf.format(today.plusDays(10)));
+
+    JSONObject createBookingObject = new JSONObject();
+    createBookingObject.put("firstname", newBookingFirstName);
+    createBookingObject.put("lastname", newBookingLastName);
+    createBookingObject.put("totalprice", 123);
+    createBookingObject.put("depositpaid", false);
+    createBookingObject.put("bookingdates",bookingDates);
+    createBookingObject.put("additionalneeds",faker.commerce().productName());
+
+    apiResponse = request.body(createBookingObject.toString()).put("/booking/"+bookingId);
 
   }
 
