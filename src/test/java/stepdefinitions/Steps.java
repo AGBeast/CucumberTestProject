@@ -129,6 +129,19 @@ public class Steps {
 
   }
 
+  @When("I request bookings that checkout in {int} days")
+  public void i_request_bookings_that_checkout_in_n_days(int days) {
+    RestAssured.baseURI = BASE_URL;
+    RequestSpecification request = RestAssured.given()
+        .header("Content-Type", "application/json")
+        .header("Accept","application/json");
+
+    String checkout = dtf.format(today.plusDays(days));
+
+    apiResponse = request.get("/booking?checkout="+checkout);
+
+  }
+
   @Then("the updated first name and last name appears")
   public void the_updated_first_name_and_last_name_appears() {
     Assert.assertTrue(newBookingFirstName.equals(apiResponse.jsonPath().getString("firstname")));

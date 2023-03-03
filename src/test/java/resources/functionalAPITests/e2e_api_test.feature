@@ -19,3 +19,8 @@ Feature: End to End Tests for the restful-booker API (https://restful-booker.her
     When I have a booking id
     And I update all of the booking details
     Then the request is successful
+
+
+  Scenario: A user can get all bookings that checkout in 5 days
+    When I request bookings that checkout in 5 days
+    Then the request is successful
